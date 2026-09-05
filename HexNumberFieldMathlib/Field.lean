@@ -53,12 +53,12 @@ theorem natPow_toComplex (a : AlgebraicNumber) (n : Nat) :
             Nat.div_lt_self (Nat.succ_pos n) (by decide : 1 < 2)
           rw [natPow]
           by_cases heven : (n + 1) % 2 = 0
-          · rw [if_pos heven, mul_toComplex, ih ((n + 1) / 2) hlt,
+          · rw [ite_eq_left heven, mul_toComplex, ih ((n + 1) / 2) hlt,
               ← pow_add]
             have hdecomp := Nat.mod_add_div (n + 1) 2
             congr 1
             omega
-          · rw [if_neg heven, mul_toComplex, mul_toComplex,
+          · rw [ite_eq_right heven, mul_toComplex, mul_toComplex,
               ih ((n + 1) / 2) hlt, ← pow_add, ← pow_succ]
             have hdecomp := Nat.mod_add_div (n + 1) 2
             have hmod := Nat.mod_two_eq_zero_or_one (n + 1)
@@ -106,7 +106,8 @@ noncomputable def field : Field AlgebraicNumber := by
     rfl
   · intro q a
     change (smul q a).toComplex = q • a.toComplex
-    rw [smul, mul_toComplex, ofRat_toComplex, Rat.smul_def]
+    rw [Rat.smul_def]
+    exact smul_toComplex q a
   · exact natPow_toComplex
   · exact intPow_toComplex
   · intro n
@@ -137,7 +138,7 @@ info: 'Hex.AlgebraicNumber.field' depends on axioms: [propext, Classical.choice,
 
 section OperationRegression
 
-variable (a b : AlgebraicNumber) (q : Rat)
+variable (a b : AlgebraicNumber) (q : Rat) (n : Nat) (z : Int)
 
 -- Force notation through the installed field dictionary, rather than the
 -- standalone executable instances, so these equalities inspect the data
@@ -148,6 +149,7 @@ attribute [-instance] AlgebraicNumber.instZero AlgebraicNumber.instOne
   AlgebraicNumber.instMul AlgebraicNumber.instNeg AlgebraicNumber.instInv
   AlgebraicNumber.instDiv AlgebraicNumber.instPowNat
   AlgebraicNumber.instPowInt AlgebraicNumber.instSMulRat
+  AlgebraicNumber.instSMulNat AlgebraicNumber.instSMulInt
 
 example : (0 : AlgebraicNumber) = AlgebraicNumber.zero := rfl
 example : (1 : AlgebraicNumber) = AlgebraicNumber.ofRat 1 := rfl
@@ -160,6 +162,8 @@ example : a / b = AlgebraicNumber.div a b := rfl
 example : a ^ (3 : Nat) = AlgebraicNumber.natPow a 3 := rfl
 example : a ^ (-3 : Int) = AlgebraicNumber.intPow a (-3) := rfl
 example : q • a = AlgebraicNumber.smul q a := rfl
+example : n • a = AlgebraicNumber.smul (n : Rat) a := rfl
+example : z • a = AlgebraicNumber.smul (z : Rat) a := rfl
 example : ((2 : Nat) : AlgebraicNumber) = (2 : AlgebraicNumber) := rfl
 
 end OperationRegression

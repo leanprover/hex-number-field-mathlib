@@ -291,15 +291,6 @@ theorem rootMultiplicity_monicDiv [ZPoly.CheckedIrreducible p]
   rw [rootMultiplicity_monic (dividend / divisor) hquotient z]
   exact rootMultiplicity_div dividend divisor hdivisor hdividend z
 
-/-- A monic exact quotient of a nonzero executable polynomial is nonzero. -/
-theorem toPolynomial_monicDiv_ne_zero [ZPoly.CheckedIrreducible p]
-    (dividend divisor : DensePoly (QAdjoin p x))
-    (hdivisor : divisor ∣ dividend)
-    (hdividend : HexPolyMathlib.toPolynomial dividend ≠ 0) :
-    HexPolyMathlib.toPolynomial (monic (dividend / divisor)) ≠ 0 :=
-  toPolynomial_monic_ne_zero _
-    (toPolynomial_div_ne_zero dividend divisor hdivisor hdividend)
-
 /-- Monic normalization remains associated after any field embedding. -/
 theorem map_monic_associated [ZPoly.CheckedIrreducible p]
     {K : Type*} [Field K] (embedding : QAdjoin p x →+* K)
@@ -479,10 +470,14 @@ repeated part contains the remaining `r - k` copies. -/
 structure YunInvariant [ZPoly.CheckedIrreducible p]
     {K : Type*} [Field K] (embedding : QAdjoin p x →+* K) (z : K)
     (r k : Nat) (w repeated : DensePoly (QAdjoin p x)) : Prop where
+  /-- The current squarefree-product accumulator is nonzero. -/
   w_ne : toPolynomialMap embedding w ≠ 0
+  /-- The current repeated part is nonzero. -/
   repeated_ne : toPolynomialMap embedding repeated ≠ 0
+  /-- The accumulator contains `z` exactly once while copies remain. -/
   w_multiplicity : (toPolynomialMap embedding w).rootMultiplicity z =
     if k ≤ r then 1 else 0
+  /-- The repeated part contains the remaining `r - k` copies of `z`. -/
   repeated_multiplicity :
     (toPolynomialMap embedding repeated).rootMultiplicity z = r - k
 
@@ -737,9 +732,9 @@ private theorem yunAux_complete [ZPoly.CheckedIrreducible p]
           simpa only [Polynomial.C_1] using
             Polynomial.rootMultiplicity_C (1 : K) z
         simp only [toPolynomialMap, HexPolyMathlib.toPolynomial_one,
-          Polynomial.map_one, if_pos hindex] at hmultiplicity
+          Polynomial.map_one, ite_eq_left hindex] at hmultiplicity
         omega
-      rw [yunAux, if_neg hnotOne]
+      rw [yunAux, ite_eq_right hnotOne]
       dsimp only
       let shared := monic (DensePoly.gcd w repeated)
       let component := monic (w / shared)
@@ -763,7 +758,7 @@ private theorem yunAux_complete [ZPoly.CheckedIrreducible p]
           (Polynomial.rootMultiplicity_pos hcomponentNe).mp hpositive
         have hdegree : 0 < component.degree?.getD 0 :=
           degree_pos_of_map_root embedding component hcomponentNe hroot
-        rw [if_pos hdegree]
+        rw [ite_eq_left hdegree]
         refine ⟨(component, k), ?_, hroot, heq⟩
         apply mem_yunAux_of_mem
         simp [component, shared]
@@ -801,7 +796,7 @@ theorem yun_sound [ZPoly.CheckedIrreducible p]
       distinct repeated :=
     YunInvariant.init embedding f hf hnatDegree z
   unfold yun at hentry
-  rw [if_neg (by omega)] at hentry
+  rw [ite_eq_right (by omega)] at hentry
   exact yunAux_sound embedding z
     ((toPolynomialMap embedding f).rootMultiplicity z)
     distinct repeated 1 (f.size + 1) #[] invariant (by simp)
@@ -849,7 +844,7 @@ theorem yun_complete [ZPoly.CheckedIrreducible p]
   have hcomplete := yunAux_complete embedding z r distinct repeated 1
     (f.size + 1) #[] invariant hindex hfuel
   unfold yun
-  rw [if_neg (by omega)]
+  rw [ite_eq_right (by omega)]
   exact hcomplete
 
 end Hex.QAdjoin.Roots

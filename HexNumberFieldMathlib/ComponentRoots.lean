@@ -103,7 +103,7 @@ private theorem rootLe_iff (a b : RootCount) :
       intro heq
       exact hp (rootPolynomial_eq_of_coefficients_eq a b heq)
     unfold rootKey
-    rw [rootLe, if_pos (by simpa using hp), intListLe_iff,
+    rw [rootLe, ite_eq_left (by simpa using hp), intListLe_iff,
       Prod.Lex.toLex_le_toLex]
     constructor
     · intro hle
@@ -221,38 +221,36 @@ theorem componentRoots?_sound [ZPoly.CheckedIrreducible p]
                         x := SimpleRoot.mk candidateRep
                         rep := candidateRep
                         rep_mk := rfl }
-                    cases hevaluation : evalRoot? f rep h candidate with
-                    | none => simp [candidate, hevaluation] at hstep
-                    | some evaluation =>
-                        cases hkeep : retainZero? evaluation.p
-                            (evalMajorant f candidate.p)
-                            (evalBall? f rep h candidate) with
-                        | none =>
-                            simp [candidate, hevaluation, hkeep] at hstep
-                        | some keep =>
-                            cases keep with
-                            | false =>
-                                have hnext : out = next := by
-                                  simpa [candidate, hevaluation, hkeep]
-                                    using hstep
-                                simpa [← hnext] using hout
-                            | true =>
-                                have hnext : out.push
-                                    { root := candidate
-                                      multiplicity
-                                      multiplicity_pos := hMultiplicity } = next := by
-                                  simpa [candidate, hevaluation, hkeep]
-                                    using hstep
-                                rw [← hnext]
-                                intro entry hentry
-                                rw [Array.toList_push, List.mem_append,
-                                  List.mem_singleton] at hentry
-                                rcases hentry with hentry | rfl
-                                · exact hout entry hentry
-                                · constructor
-                                  · exact (retainZero?_correct f rep h candidate
-                                      evaluation hevaluation hkeep).mp rfl
-                                  · rfl
+                    cases hkeep : retainZero?
+                        (evalEliminant f
+                          (ZPoly.squareFreeCore (normEliminant f)))
+                        (evalMajorant f candidate.p)
+                        (evalBall? f rep h candidate) with
+                    | none =>
+                        simp [candidate, hkeep] at hstep
+                    | some keep =>
+                        cases keep with
+                        | false =>
+                            have hnext : out = next := by
+                              simpa [candidate, hkeep] using hstep
+                            simpa [← hnext] using hout
+                        | true =>
+                            have hnext : out.push
+                                { root := candidate
+                                  multiplicity
+                                  multiplicity_pos := hMultiplicity } = next := by
+                              simpa [candidate, hkeep] using hstep
+                            rw [← hnext]
+                            intro entry hentry
+                            rw [Array.toList_push, List.mem_append,
+                              List.mem_singleton] at hentry
+                            rcases hentry with hentry | rfl
+                            · exact hout entry hentry
+                            · constructor
+                              · exact (retainZero?_correct f rep h candidate
+                                  (size_pos_of_core_degree f hdegree)
+                                  hkeep).mp rfl
+                              · rfl
         next hsimple => simp at hrun
       next hdegree => simp at hrun
     next hpos => simp at hrun
@@ -346,11 +344,11 @@ theorem componentRoots?_complete [ZPoly.CheckedIrreducible p]
                       rep_mk := rfl }
                   have hcandidateValue : candidate.toComplex = z := by
                     exact hrefinedRoot
-                  obtain ⟨evaluation, hevaluation⟩ :=
-                    Option.isSome_iff_exists.mp
-                      (evalRoot?_isSome f rep h candidate)
                   obtain ⟨keep, hkeep⟩ := Option.isSome_iff_exists.mp
-                    (retainZero?_isSome evaluation.p f rep h candidate)
+                    (retainZero?_isSome
+                      (evalEliminant f
+                        (ZPoly.squareFreeCore (normEliminant f)))
+                      f rep h candidate)
                   have hcandidateZero : Polynomial.eval candidate.toComplex
                       (QAdjoin.toPolynomialAt f rep h) = 0 := by
                     rw [hcandidateValue]
@@ -359,7 +357,8 @@ theorem componentRoots?_complete [ZPoly.CheckedIrreducible p]
                     cases keep with
                     | false =>
                         have hfalse := (retainZero?_correct f rep h candidate
-                          evaluation hevaluation hkeep).mpr hcandidateZero
+                          (size_pos_of_core_degree f hdegree)
+                          hkeep).mpr hcandidateZero
                         simp at hfalse
                     | true => rfl
                   let selected : RootCount :=
@@ -367,7 +366,7 @@ theorem componentRoots?_complete [ZPoly.CheckedIrreducible p]
                       multiplicity
                       multiplicity_pos := hMultiplicity }
                   have hnext : state.push selected = next := by
-                    simpa [candidate, selected, hevaluation, hkeep, hkeepTrue]
+                    simpa [candidate, selected, hkeep, hkeepTrue]
                       using hcandidateStep
                   rw [← hnext] at hsuffix
                   apply list_foldlM_sound suffix (state.push selected) roots
@@ -389,33 +388,30 @@ theorem componentRoots?_complete [ZPoly.CheckedIrreducible p]
                       x := SimpleRoot.mk candidateRep
                       rep := candidateRep
                       rep_mk := rfl }
-                  cases hevaluation' : evalRoot? f rep h candidate' with
-                  | none => simp [candidate', hevaluation'] at hstep
-                  | some evaluation' =>
-                      cases hkeep' : retainZero? evaluation'.p
-                          (evalMajorant f candidate'.p)
-                          (evalBall? f rep h candidate') with
-                      | none =>
-                          simp [candidate', hevaluation', hkeep'] at hstep
-                      | some keep' =>
-                          cases keep' with
-                          | false =>
-                              have hnext' : out = next := by
-                                simpa [candidate', hevaluation', hkeep']
-                                  using hstep
-                              simpa [← hnext'] using hout
-                          | true =>
-                              have hnext' : out.push
-                                  { root := candidate'
-                                    multiplicity
-                                    multiplicity_pos := hMultiplicity } = next := by
-                                simpa [candidate', hevaluation', hkeep']
-                                  using hstep
-                              rcases hout with ⟨entry, hentry, hvalue, hmult⟩
-                              refine ⟨entry, ?_, hvalue, hmult⟩
-                              rw [← hnext', Array.toList_push,
-                                List.mem_append]
-                              exact Or.inl hentry
+                  cases hkeep' : retainZero?
+                      (evalEliminant f
+                        (ZPoly.squareFreeCore (normEliminant f)))
+                      (evalMajorant f candidate'.p)
+                      (evalBall? f rep h candidate') with
+                  | none =>
+                      simp [candidate', hkeep'] at hstep
+                  | some keep' =>
+                      cases keep' with
+                      | false =>
+                          have hnext' : out = next := by
+                            simpa [candidate', hkeep'] using hstep
+                          simpa [← hnext'] using hout
+                      | true =>
+                          have hnext' : out.push
+                              { root := candidate'
+                                multiplicity
+                                multiplicity_pos := hMultiplicity } = next := by
+                            simpa [candidate', hkeep'] using hstep
+                          rcases hout with ⟨entry, hentry, hvalue, hmult⟩
+                          refine ⟨entry, ?_, hvalue, hmult⟩
+                          rw [← hnext', Array.toList_push,
+                            List.mem_append]
+                          exact Or.inl hentry
         next hsimple => simp at hrun
       next hdegree => simp at hrun
     next hpos => simp at hrun
@@ -706,7 +702,7 @@ private theorem componentFold_contains [ZPoly.CheckedIrreducible p]
       simp
   | cons component components ih =>
       have hcomponent := hall component (by simp)
-      rw [List.foldlM_cons, dif_pos hcomponent.2] at hrun
+      rw [List.foldlM_cons, dite_eq_left hcomponent.2] at hrun
       cases hfound : componentRoots? component.1 component.2 hcomponent.2 rep h with
       | none => simp [hfound] at hrun
       | some found =>
@@ -782,7 +778,7 @@ private theorem componentFold_nodup [ZPoly.CheckedIrreducible p]
     (hrun := hrun)
   intro roots component next hcomponent hstep hroots
   have hpositive := (hall component hcomponent).2
-  rw [dif_pos hpositive] at hstep
+  rw [dite_eq_left hpositive] at hstep
   cases hfound : componentRoots? component.1 component.2 hpositive rep h with
   | none => simp [hfound] at hstep
   | some found =>
@@ -824,7 +820,7 @@ private theorem componentFold_value [ZPoly.CheckedIrreducible p]
     (hrun := hrun)
   intro roots component next hcomponent hstep hroots
   have hpositive := (yun_positive f component hcomponent).2
-  rw [dif_pos hpositive] at hstep
+  rw [dite_eq_left hpositive] at hstep
   cases hfound : componentRoots? component.1 component.2 hpositive rep h with
   | none => simp [hfound] at hstep
   | some found =>
@@ -956,8 +952,8 @@ theorem contains_roots_iff [ZPoly.CheckedIrreducible p]
     · have heq := roots?_eq_roots f rep h
       have hfFalse : f.isZero = false := by
         cases hvalue : f.isZero <;> simp_all
-      rw [QAdjoin.roots?, if_neg (by simpa using hfFalse),
-        if_pos hdegree] at heq
+      rw [QAdjoin.roots?, ite_eq_right (by simpa using hfFalse),
+        ite_eq_left hdegree] at heq
       have hroots : QAdjoin.roots f rep h = .finite #[] :=
         (Option.some.inj heq).symm
       constructor
@@ -976,8 +972,8 @@ theorem contains_roots_iff [ZPoly.CheckedIrreducible p]
       have heq := roots?_eq_roots f rep h
       have hfFalse : f.isZero = false := by
         cases hvalue : f.isZero <;> simp_all
-      rw [QAdjoin.roots?, if_neg (by simpa using hfFalse),
-        if_neg hdegree] at heq
+      rw [QAdjoin.roots?, ite_eq_right (by simpa using hfFalse),
+        ite_eq_right hdegree] at heq
       cases hfold : (Roots.yun f).foldlM
           (fun out component =>
             if hm : 0 < component.2 then do
@@ -1125,8 +1121,8 @@ theorem multiplicity_roots [ZPoly.CheckedIrreducible p]
         have heq := roots?_eq_roots f rep h
         have hfFalse : f.isZero = false := by
           cases hvalueZero : f.isZero <;> simp_all
-        rw [QAdjoin.roots?, if_neg (by simpa using hfFalse),
-          if_neg hdegree] at heq
+        rw [QAdjoin.roots?, ite_eq_right (by simpa using hfFalse),
+          ite_eq_right hdegree] at heq
         cases hfold : (Roots.yun f).foldlM
             (fun out component =>
               if hm : 0 < component.2 then do
