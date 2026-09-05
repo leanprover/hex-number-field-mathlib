@@ -9,22 +9,22 @@ leanOptions = [
 [[require]]
 name = "HexNumberField"
 git = "https://github.com/leanprover/hex-number-field.git"
-rev = "d645658e29b2dbcbd340b4179bf26446eda61488"
+rev = "f75c4cb92b73dc053230f7087fa9a8a7f4edd21b"
 
 [[require]]
 name = "HexRootsMathlib"
 git = "https://github.com/leanprover/hex-roots-mathlib.git"
-rev = "f3e21250bb1f87a797e51a3ef8fb1a55fbca3066"
+rev = "a8774c9e1a27e194e3ab8f3cd0761c8c3bdad257"
 
 [[require]]
 name = "HexResultantMathlib"
 git = "https://github.com/leanprover/hex-resultant-mathlib.git"
-rev = "8167fe0e98451e842213cecbbc36f7cbfb668db7"
+rev = "b40bef9d6083c1df635867813fac6c3bc8455a4e"
 
 [[require]]
 name = "HexBerlekampZassenhausMathlib"
 git = "https://github.com/leanprover/hex-berlekamp-zassenhaus-mathlib.git"
-rev = "3aa487592f8959889505ceeae6e4bde9fa137a97"
+rev = "a64dd3e6c11d864be268121845c9705eb230b1fe"
 
 [[require]]
 name = "HexPolyMathlib"
@@ -34,12 +34,12 @@ rev = "d4bbb82b87704d3016c6c1d822ae1f77c793958a"
 [[require]]
 name = "HexPolyZMathlib"
 git = "https://github.com/leanprover/hex-poly-z-mathlib.git"
-rev = "781fcf515411217c4e03e4f607ce8a84ef818bcb"
+rev = "d9b7ba1f1ef5bc456f9b7467f694b940d5e5200a"
 
 [[require]]
 name = "HexMatrixMathlib"
 git = "https://github.com/leanprover/hex-matrix-mathlib.git"
-rev = "a17d02deaac889ea58c8499b97da1c71205edf08"
+rev = "7c5744ca46a91252712f1c421911e9a2463d5fd6"
 
 [[require]]
 name = "mathlib"
