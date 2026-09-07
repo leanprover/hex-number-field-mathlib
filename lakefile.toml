@@ -9,37 +9,37 @@ leanOptions = [
 [[require]]
 name = "HexNumberField"
 git = "https://github.com/leanprover/hex-number-field.git"
-rev = "302f88b3c675038bc7a6f4fb4b19dfe450e01ff3"
+rev = "e15daff4e96d8dc925733fae7c6ed65e657b41a3"
 
 [[require]]
 name = "HexRootsMathlib"
 git = "https://github.com/leanprover/hex-roots-mathlib.git"
-rev = "c57e7cfaf6469ca8eea81c12e201143692f272ad"
+rev = "a2e6ccc6c1d0c2823d4230e0dacb2d321971a3ce"
 
 [[require]]
 name = "HexResultantMathlib"
 git = "https://github.com/leanprover/hex-resultant-mathlib.git"
-rev = "42a7f1de16b18e1425bea094d221d2a88bc66ed4"
+rev = "24a92e27e04161bb84590320e70baf1b517483f2"
 
 [[require]]
 name = "HexBerlekampZassenhausMathlib"
 git = "https://github.com/leanprover/hex-berlekamp-zassenhaus-mathlib.git"
-rev = "4e959c0ae8e83316ec1038a3b1abbd5964a08c51"
+rev = "0b8e7572ff792a0718ab5b35e021a83475d4c121"
 
 [[require]]
 name = "HexPolyMathlib"
 git = "https://github.com/leanprover/hex-poly-mathlib.git"
-rev = "a9eb9de8c92b96f57660d02c468f9f8622066641"
+rev = "1b044cdd65e62c4538e710aaf2989ebf6065c536"
 
 [[require]]
 name = "HexPolyZMathlib"
 git = "https://github.com/leanprover/hex-poly-z-mathlib.git"
-rev = "db6441e818dd3a21e99bd7bf7a1b53291a140207"
+rev = "688a3dfb76e2fd18a63236b9c55df4f8f1956ea3"
 
 [[require]]
 name = "HexMatrixMathlib"
 git = "https://github.com/leanprover/hex-matrix-mathlib.git"
-rev = "7e610d89729859968ae51cbbecb8aaef537d7225"
+rev = "ee61da70b963a82eb056a5304aa5a65e1af21bf8"
 
 [[require]]
 name = "mathlib"

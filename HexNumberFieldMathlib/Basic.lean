@@ -106,7 +106,7 @@ theorem p_eq_minpoly (a : AlgebraicNumber) :
 
 end AlgebraicNumber
 
-namespace QAdjoin
+namespace PolyQuot
 
 variable {p : ZPoly} {x : SimpleRoot p}
 
@@ -114,7 +114,7 @@ variable {p : ZPoly} {x : SimpleRoot p}
 The representative and quotient equality are explicit inputs so this semantic
 map does not depend on an irreducibility proof. -/
 @[expose]
-noncomputable def toComplex (a : QAdjoin p x)
+noncomputable def toComplex (a : PolyQuot p x)
     (rep : RefinedIsolation p) (_h : SimpleRoot.mk rep = x) : ℂ :=
   (HexPolyMathlib.toPolynomial a.coeffs).eval₂ (algebraMap Rat ℂ)
     rep.root
@@ -152,7 +152,7 @@ theorem eval_reduceCoeffs (f : DensePoly Rat)
     Polynomial.eval₂_mul, hp, mul_zero, zero_add] using hdiv
 
 /-- Fixed-presentation addition agrees with complex addition. -/
-theorem map_add (a b : QAdjoin p x) (rep : RefinedIsolation p)
+theorem map_add (a b : PolyQuot p x) (rep : RefinedIsolation p)
     (h : SimpleRoot.mk rep = x) :
     toComplex (a + b) rep h = toComplex a rep h + toComplex b rep h := by
   change
@@ -167,7 +167,7 @@ theorem map_add (a b : QAdjoin p x) (rep : RefinedIsolation p)
     Polynomial.eval₂_add]
 
 /-- Fixed-presentation multiplication agrees with complex multiplication. -/
-theorem map_mul (a b : QAdjoin p x) (rep : RefinedIsolation p)
+theorem map_mul (a b : PolyQuot p x) (rep : RefinedIsolation p)
     (h : SimpleRoot.mk rep = x) :
     toComplex (a * b) rep h = toComplex a rep h * toComplex b rep h := by
   change
@@ -181,7 +181,7 @@ theorem map_mul (a b : QAdjoin p x) (rep : RefinedIsolation p)
   rw [eval_reduceCoeffs, HexPolyMathlib.toPolynomial_mul,
     Polynomial.eval₂_mul]
 
-end QAdjoin
+end PolyQuot
 
 private def RefinedIsolation.castPoly {p q : ZPoly} (h : p = q)
     (r : RefinedIsolation q) : RefinedIsolation p :=
@@ -267,7 +267,7 @@ private theorem RefinedIsolation.eq_of_canonical {p : ZPoly}
         · simp at htoJ
       have hij : i = j := by
         by_contra hij
-        apply HexRootsMathlib.isolate_roots_ne p squarefree₁
+        apply HexRootsMathlib.isolateComplexRoots?_roots_ne p squarefree₁
           (separationDepth p : Int) .nkThenPellet hisolate hi hj hij
         rw [← hrawI, ← hrawJ]
         change HexRootsMathlib.DyadicRootIsolation.root r.1 =
@@ -352,7 +352,7 @@ info: 'Hex.AlgebraicNumber.toComplex_injective' depends on axioms: [propext, Cla
 supplied refined isolation, including the explicit canonical-zero path. -/
 theorem AlgebraicNumber.ofNormalized?_toComplex
     (p : ZPoly) (prim : ZPoly.Primitive p) (pos_lc : 0 < p.leadingCoeff)
-    (pos_degree : 0 < p.degree?.getD 0)
+    (pos_degree : 0 < p.natDegree)
     (checked : ZPoly.CheckedIrreducible p) (squarefree : HasOnlySimpleRoots p)
     (rep : RefinedIsolation p) {a : AlgebraicNumber}
     (h : AlgebraicNumber.ofNormalized? p prim pos_lc pos_degree checked

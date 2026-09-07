@@ -32,7 +32,7 @@ theorem toRoot_toComplex (a : AlgebraicNumber) :
 /-- Canonicalization of an already normalized polynomial is total. -/
 theorem ofNormalized?_isSome
     (p : ZPoly) (prim : ZPoly.Primitive p) (pos_lc : 0 < p.leadingCoeff)
-    (pos_degree : 0 < p.degree?.getD 0)
+    (pos_degree : 0 < p.natDegree)
     (checked : ZPoly.CheckedIrreducible p) (squarefree : HasOnlySimpleRoots p)
     (rep : RefinedIsolation p) :
     (AlgebraicNumber.ofNormalized? p prim pos_lc pos_degree checked
@@ -44,23 +44,23 @@ theorem ofNormalized?_isSome
       intro hp
       rw [hp] at pos_degree
       simp at pos_degree
-    have hisolate := HexRootsMathlib.isolate_isSome p squarefree hpne
+    have hisolate := HexRootsMathlib.isolateComplexRoots?_isSome p squarefree hpne
       (separationDepth p : Int) .nkThenPellet
-    cases hrun : isolate p squarefree (separationDepth p : Int) with
+    cases hrun : ZPoly.isolateComplexRoots? p squarefree (separationDepth p : Int) with
     | none => simp [hrun] at hisolate
     | some isolations =>
         have hmapSome := HexRootsMathlib.array_mapM_isSome
           (xs := isolations) (f := DyadicRootIsolation.toRefined?)
           (fun iso hiso => by
             unfold DyadicRootIsolation.toRefined?
-            rw [dite_eq_left (HexRootsMathlib.isolate_refined p squarefree
+            rw [dite_eq_left (HexRootsMathlib.isolateComplexRoots?_refined p squarefree
               (separationDepth p : Int) .nkThenPellet hrun iso hiso)]
             rfl)
         cases hmap : isolations.mapM DyadicRootIsolation.toRefined? with
         | none => simp [hmap] at hmapSome
         | some refined =>
             obtain ⟨iso, hiso, hisoRoot⟩ :=
-              HexRootsMathlib.isolate_root_mem_of_pos p squarefree
+              HexRootsMathlib.isolateComplexRoots?_root_mem_of_pos p squarefree
                 (separationDepth p : Int) .nkThenPellet pos_degree hrun
                 (HexRootsMathlib.RefinedIsolation.isRoot rep)
             obtain ⟨i, hiList, hidx⟩ := List.getElem_of_mem hiso
@@ -164,7 +164,7 @@ theorem exactFactor?_sound (a : AlgebraicRoot) (q : ZPoly)
 survives isolation, refinement, and canonicalization. -/
 theorem exactFactor?_isSome (a : AlgebraicRoot) (q : ZPoly)
     (hprim : ZPoly.content q = 1) (hpos : 0 < q.leadingCoeff)
-    (hdegree : 0 < q.degree?.getD 0)
+    (hdegree : 0 < q.natDegree)
     (hirred : ZPoly.isIrreducible q = true)
     (hsimple : HasOnlySimpleRoots q)
     (hroot : (HexRootsMathlib.toPolyℂ q).IsRoot a.toComplex) :
@@ -176,16 +176,16 @@ theorem exactFactor?_isSome (a : AlgebraicRoot) (q : ZPoly)
     intro hq
     rw [hq] at hdegree
     simp at hdegree
-  have hisolate := HexRootsMathlib.isolate_isSome q hsimple hqne
+  have hisolate := HexRootsMathlib.isolateComplexRoots?_isSome q hsimple hqne
     (separationDepth q : Int) .nkThenPellet
-  cases hrun : isolate q hsimple (separationDepth q : Int) with
+  cases hrun : ZPoly.isolateComplexRoots? q hsimple (separationDepth q : Int) with
   | none => simp [hrun] at hisolate
   | some isolations =>
       have hmapSome := HexRootsMathlib.array_mapM_isSome
         (xs := isolations) (f := DyadicRootIsolation.toRefined?)
         (fun iso hiso => by
           unfold DyadicRootIsolation.toRefined?
-          rw [dite_eq_left (HexRootsMathlib.isolate_refined q hsimple
+          rw [dite_eq_left (HexRootsMathlib.isolateComplexRoots?_refined q hsimple
             (separationDepth q : Int) .nkThenPellet hrun iso hiso)]
           rfl)
       cases hmap : isolations.mapM DyadicRootIsolation.toRefined? with
@@ -208,7 +208,7 @@ theorem exactFactor?_isSome (a : AlgebraicRoot) (q : ZPoly)
           | none => simp [hrefine] at hrefineSome
           | some comparable =>
               obtain ⟨iso, hiso, hisoRoot⟩ :=
-                HexRootsMathlib.isolate_root_mem_of_pos q hsimple
+                HexRootsMathlib.isolateComplexRoots?_root_mem_of_pos q hsimple
                   (separationDepth q : Int) .nkThenPellet hdegree hrun hroot
               obtain ⟨i, hiList, hidx⟩ := List.getElem_of_mem hiso
               have hi : i < isolations.size := by simpa using hiList
@@ -429,7 +429,7 @@ theorem exact_toComplex (a : AlgebraicRoot) :
 
 end AlgebraicRoot
 
-namespace QAdjoin
+namespace PolyQuot
 
 variable {p : ZPoly} {x : SimpleRoot p}
 
@@ -483,10 +483,10 @@ private theorem relationPoly_size {k : Nat} (coeffs : Vector Rat k) :
 private theorem relationPoly_natDegree {k : Nat} (coeffs : Vector Rat k) :
     (HexPolyMathlib.toPolynomial (relationPoly coeffs)).natDegree = k := by
   rw [HexPolyMathlib.natDegree_toPolynomial]
-  simp [DensePoly.degree?, relationPoly_size coeffs]
+  simp [DensePoly.natDegree, DensePoly.degree?, relationPoly_size coeffs]
 
 private theorem adjoinRoot_repr [ZPoly.CheckedIrreducible p]
-    (a : QAdjoin p x) (i : Fin (definingPolynomial p).natDegree) :
+    (a : PolyQuot p x) (i : Fin (definingPolynomial p).natDegree) :
     (AdjoinRoot.powerBasisAux' (definingPolynomial_monic p)).repr
         (toAdjoinRoot a) i = a.coeffs.coeff i.val := by
   rw [AdjoinRoot.powerBasisAux'_repr_apply_to_fun, toAdjoinRoot,
@@ -500,20 +500,20 @@ private theorem adjoinRoot_repr [ZPoly.CheckedIrreducible p]
     exact a.degree_lt
 
 private noncomputable def adjoinRootAlgEquiv [ZPoly.CheckedIrreducible p] :
-    QAdjoin p x ≃ₐ[Rat] AdjoinRoot (definingPolynomial p) :=
+    PolyQuot p x ≃ₐ[Rat] AdjoinRoot (definingPolynomial p) :=
   AlgEquiv.ofRingEquiv
       (f := adjoinRootEquiv (p := p) (x := x)) fun r => by
     rw [Algebra.algebraMap_eq_smul_one, Algebra.algebraMap_eq_smul_one]
-    change toAdjoinRoot (r • (1 : QAdjoin p x)) =
+    change toAdjoinRoot (r • (1 : PolyQuot p x)) =
       r • (1 : AdjoinRoot (definingPolynomial p))
     rw [toAdjoinRoot_smul, toAdjoinRoot_one]
 
 private theorem natPow_succ [ZPoly.CheckedIrreducible p]
-    (a : QAdjoin p x) (n : Nat) :
+    (a : PolyQuot p x) (n : Nat) :
     a ^ (n + 1) = a ^ n * a := pow_succ a n
 
 private theorem krylovPowers_get [ZPoly.CheckedIrreducible p]
-    (a : QAdjoin p x) (n : Nat)
+    (a : PolyQuot p x) (n : Nat)
     (i : Fin (n + 1)) :
     (krylovPowers a n).get i = a ^ i.val := by
   induction n with
@@ -539,17 +539,17 @@ private theorem krylovPowers_get [ZPoly.CheckedIrreducible p]
         simp [krylovPowers, ih]
 
 private theorem krylovOrbit_get [ZPoly.CheckedIrreducible p]
-    (a : QAdjoin p x) (i : Fin (p.degree?.getD 0 + 1)) :
+    (a : PolyQuot p x) (i : Fin (p.natDegree + 1)) :
     a.krylovOrbit.get i = a ^ i.val := by
   exact krylovPowers_get a _ i
 
 private theorem vecMul_of_linear [ZPoly.CheckedIrreducible p]
-    (a : QAdjoin p x) (k : Nat) (coeffs : Vector Rat k)
+    (a : PolyQuot p x) (k : Nat) (coeffs : Vector Rat k)
     (hlinear : ∑ i : Fin k, coeffs[i] • a ^ i.val = a ^ k) :
     Matrix.vecMul coeffs
-        (Matrix.ofFn fun i : Fin k => fun j : Fin (p.degree?.getD 0) =>
+        (Matrix.ofFn fun i : Fin k => fun j : Fin (p.natDegree) =>
           (a ^ i.val).coeffs.coeff j) =
-      Vector.ofFn fun j : Fin (p.degree?.getD 0) =>
+      Vector.ofFn fun j : Fin (p.natDegree) =>
         (a ^ k).coeffs.coeff j := by
   have himage := congrArg (adjoinRootEquiv (p := p) (x := x)) hlinear
   simp only [map_sum, adjoinRootEquiv_apply, toAdjoinRoot_smul] at himage
@@ -564,7 +564,7 @@ private theorem vecMul_of_linear [ZPoly.CheckedIrreducible p]
   have hj := congrArg (fun v => v j') hrepr
   simp only [map_sum, map_smulₛₗ, RingHom.id_apply,
     Finset.sum_apply', Finsupp.coe_smul, Pi.smul_apply, smul_eq_mul] at hj
-  have hrepr' (b : QAdjoin p x) :
+  have hrepr' (b : PolyQuot p x) :
       (B.repr (toAdjoinRoot b)) j' = b.coeffs.coeff j := by
     simpa [B, j'] using adjoinRoot_repr b j'
   rw [hrepr' (a ^ k)] at hj
@@ -576,29 +576,29 @@ private theorem vecMul_of_linear [ZPoly.CheckedIrreducible p]
     intro i _hi
     rw [hrepr' (a ^ i.val)]
   rw [hsum] at hj
-  let jf : Fin (p.degree?.getD 0) := ⟨j, _hj⟩
+  let jf : Fin (p.natDegree) := ⟨j, _hj⟩
   change (coeffs * (Matrix.ofFn fun i : Fin k =>
-    fun j : Fin (p.degree?.getD 0) => (a ^ i.val).coeffs.coeff j))[jf] =
-      (Vector.ofFn fun j : Fin (p.degree?.getD 0) =>
+    fun j : Fin (p.natDegree) => (a ^ i.val).coeffs.coeff j))[jf] =
+      (Vector.ofFn fun j : Fin (p.natDegree) =>
         (a ^ k).coeffs.coeff j)[jf]
   rw [Matrix.getElem_vecMul, HexMatrixMathlib.dotProduct_eq]
   have hentry (i : Fin k) :
       (Matrix.getRow (Matrix.ofFn fun i : Fin k =>
-        fun j : Fin (p.degree?.getD 0) =>
+        fun j : Fin (p.natDegree) =>
           (a ^ i.val).coeffs.coeff j) i)[jf] =
         (a ^ i.val).coeffs.coeff jf.val := by
     rw [← Matrix.getElem_eq_getRow, Matrix.getElem_ofFn]
   simpa [dotProduct, Matrix.col, hentry, jf, mul_comm] using hj
 
 private theorem relationAt?_isSome_of_linear [ZPoly.CheckedIrreducible p]
-    (a : QAdjoin p x) (k : Nat) (coeffs : Vector Rat k)
-    (hk : k ≤ p.degree?.getD 0)
+    (a : PolyQuot p x) (k : Nat) (coeffs : Vector Rat k)
+    (hk : k ≤ p.natDegree)
     (hlinear : ∑ i : Fin k, coeffs[i] • a ^ i.val = a ^ k) :
     (a.relationAt? a.krylovOrbit k).isSome := by
-  let previous : Matrix Rat k (p.degree?.getD 0) :=
+  let previous : Matrix Rat k (p.natDegree) :=
     Matrix.ofFn fun i j =>
       (a.krylovOrbit.get ⟨i.val, by omega⟩).coeffs.coeff j
-  let target : Vector Rat (p.degree?.getD 0) :=
+  let target : Vector Rat (p.natDegree) :=
     Vector.ofFn fun j =>
       (a.krylovOrbit.get ⟨k, Nat.lt_succ_of_le hk⟩).coeffs.coeff j
   have hcoords : Matrix.vecMul coeffs previous = target := by
@@ -616,10 +616,10 @@ private theorem relationAt?_isSome_of_linear [ZPoly.CheckedIrreducible p]
   | some found => simp
 
 private theorem minpoly_relation [ZPoly.CheckedIrreducible p]
-    (a : QAdjoin p x) :
+    (a : PolyQuot p x) :
     let b : AdjoinRoot (definingPolynomial p) := toAdjoinRoot a
     let d := (minpoly Rat b).natDegree
-    0 < d ∧ d ≤ p.degree?.getD 0 ∧
+    0 < d ∧ d ≤ p.natDegree ∧
       (a.relationAt? a.krylovOrbit d).isSome := by
   let b : AdjoinRoot (definingPolynomial p) := toAdjoinRoot a
   let : Module.Free Rat (AdjoinRoot (definingPolynomial p)) :=
@@ -631,7 +631,7 @@ private theorem minpoly_relation [ZPoly.CheckedIrreducible p]
   let d : Nat := m.natDegree
   have hmonic : m.Monic := minpoly.monic hbint
   have hdpos : 0 < d := minpoly.natDegree_pos hbint
-  have hdle : d ≤ p.degree?.getD 0 := by
+  have hdle : d ≤ p.natDegree := by
     have hbound := minpoly.natDegree_le (A := Rat) b
     have hfinrank : Module.finrank Rat
         (AdjoinRoot (definingPolynomial p)) =
@@ -663,11 +663,11 @@ private theorem minpoly_relation [ZPoly.CheckedIrreducible p]
   exact ⟨hdpos, hdle, hrelation⟩
 
 private theorem minpoly?_isSome [ZPoly.CheckedIrreducible p]
-    (a : QAdjoin p x) : a.minpoly?.isSome := by
+    (a : PolyQuot p x) : a.minpoly?.isSome := by
   let b : AdjoinRoot (definingPolynomial p) := toAdjoinRoot a
   let d := (minpoly Rat b).natDegree
   obtain ⟨hdpos, hdle, hrelation⟩ :
-      0 < d ∧ d ≤ p.degree?.getD 0 ∧
+      0 < d ∧ d ≤ p.natDegree ∧
         (a.relationAt? a.krylovOrbit d).isSome := by
     simpa [b, d] using minpoly_relation a
   unfold minpoly?
@@ -679,11 +679,11 @@ private theorem minpoly?_isSome [ZPoly.CheckedIrreducible p]
     exact hrelation
 
 private theorem span_relation [ZPoly.CheckedIrreducible p]
-    (a : QAdjoin p x) (k : Nat) (coeffs : Vector Rat k)
+    (a : PolyQuot p x) (k : Nat) (coeffs : Vector Rat k)
     (hspan : Matrix.spanCoeffs
-        (Matrix.ofFn fun i : Fin k => fun j : Fin (p.degree?.getD 0) =>
+        (Matrix.ofFn fun i : Fin k => fun j : Fin (p.natDegree) =>
           (a ^ i.val).coeffs.coeff j)
-        (Vector.ofFn fun j : Fin (p.degree?.getD 0) =>
+        (Vector.ofFn fun j : Fin (p.natDegree) =>
           (a ^ k).coeffs.coeff j) = some coeffs) :
     Polynomial.aeval a
       (HexPolyMathlib.toPolynomial (relationPoly coeffs)) = 0 := by
@@ -696,7 +696,7 @@ private theorem span_relation [ZPoly.CheckedIrreducible p]
     ext j
     simp only [map_sum, map_smulₛₗ, RingHom.id_apply,
       Finset.sum_apply', Finsupp.coe_smul, Pi.smul_apply, smul_eq_mul]
-    have hrepr (b : QAdjoin p x) :
+    have hrepr (b : PolyQuot p x) :
         (B.repr (toAdjoinRoot b)) j = b.coeffs.coeff j.val := by
       simpa [B] using adjoinRoot_repr b j
     rw [hrepr (a ^ k)]
@@ -708,20 +708,20 @@ private theorem span_relation [ZPoly.CheckedIrreducible p]
       intro i _hi
       rw [hrepr (a ^ i.val)]
     rw [hsum]
-    have hjlt : j.val < p.degree?.getD 0 := by
+    have hjlt : j.val < p.natDegree := by
       rw [← natDegree_definingPolynomial p]
       exact j.isLt
-    let j' : Fin (p.degree?.getD 0) := ⟨j.val, hjlt⟩
+    let j' : Fin (p.natDegree) := ⟨j.val, hjlt⟩
     have hj := congrArg
-      (fun v : Vector Rat (p.degree?.getD 0) => v[j']) hcoords
+      (fun v : Vector Rat (p.natDegree) => v[j']) hcoords
     change (coeffs * (Matrix.ofFn fun i : Fin k =>
-      fun j : Fin (p.degree?.getD 0) => (a ^ i.val).coeffs.coeff j))[j'] =
-        (Vector.ofFn fun j : Fin (p.degree?.getD 0) =>
+      fun j : Fin (p.natDegree) => (a ^ i.val).coeffs.coeff j))[j'] =
+        (Vector.ofFn fun j : Fin (p.natDegree) =>
           (a ^ k).coeffs.coeff j)[j'] at hj
     rw [Matrix.getElem_vecMul, HexMatrixMathlib.dotProduct_eq] at hj
     have hentry (i : Fin k) :
         (Matrix.getRow (Matrix.ofFn fun i : Fin k =>
-          fun j : Fin (p.degree?.getD 0) =>
+          fun j : Fin (p.natDegree) =>
             (a ^ i.val).coeffs.coeff j) i)[j'] =
           (a ^ i.val).coeffs.coeff j'.val := by
       rw [← Matrix.getElem_eq_getRow, Matrix.getElem_ofFn]
@@ -740,20 +740,20 @@ private theorem span_relation [ZPoly.CheckedIrreducible p]
   rw [relationPoly_size, Finset.sum_range_succ, relationPoly_coeff_top]
   have hlow :
       (∑ i ∈ Finset.range k,
-        (algebraMap Rat (QAdjoin p x)) ((relationPoly coeffs).coeff i) * a ^ i) =
+        (algebraMap Rat (PolyQuot p x)) ((relationPoly coeffs).coeff i) * a ^ i) =
         -∑ i : Fin k, coeffs[i] • a ^ i.val := by
     rw [← Finset.sum_neg_distrib, Finset.sum_fin_eq_sum_range]
     apply Finset.sum_congr rfl
     intro i hi
     have hik : i < k := Finset.mem_range.mp hi
     rw [relationPoly_coeff coeffs ⟨i, hik⟩,
-      (algebraMap Rat (QAdjoin p x)).map_neg]
+      (algebraMap Rat (PolyQuot p x)).map_neg]
     simp [hik, Algebra.smul_def]
   rw [hlow, hlinear]
   simp
 
 private theorem relationAt?_sound [ZPoly.CheckedIrreducible p]
-    (a : QAdjoin p x) (k : Nat) {q : ZPoly}
+    (a : PolyQuot p x) (k : Nat) {q : ZPoly}
     (hq : a.relationAt? a.krylovOrbit k = some q) :
     Polynomial.aeval a (HexPolyZMathlib.toPolyℚ q) = 0 := by
   unfold relationAt? at hq
@@ -762,9 +762,9 @@ private theorem relationAt?_sound [ZPoly.CheckedIrreducible p]
   · obtain ⟨coeffs, hspan, rfl⟩ := Option.map_eq_some_iff.mp hq
     have hspan' : Matrix.spanCoeffs
         (Matrix.ofFn fun i : Fin k =>
-          fun j : Fin (p.degree?.getD 0) =>
+          fun j : Fin (p.natDegree) =>
             (a ^ i.val).coeffs.coeff j)
-        (Vector.ofFn fun j : Fin (p.degree?.getD 0) =>
+        (Vector.ofFn fun j : Fin (p.natDegree) =>
           (a ^ k).coeffs.coeff j) = some coeffs := by
       simpa only [krylovOrbit_get] using hspan
     have hrel := span_relation a k coeffs hspan'
@@ -784,17 +784,17 @@ private theorem relationAt?_sound [ZPoly.CheckedIrreducible p]
     rw [HexPolyMathlib.toPolynomial_scale,
       HexPolyZMathlib.toPolynomial_toRatPoly] at hpoly
     have hscaled :
-        (algebraMap Rat (QAdjoin p x)) u *
+        (algebraMap Rat (PolyQuot p x)) u *
           Polynomial.aeval a
             (HexPolyZMathlib.toPolyℚ
               (ZPoly.ratPolyPrimitivePart (relationPoly coeffs))) = 0 := by
       simpa [hpoly] using hrel
     exact (mul_eq_zero.mp hscaled).resolve_left
-      (by simpa using (algebraMap Rat (QAdjoin p x)).injective.ne hu_ne)
+      (by simpa using (algebraMap Rat (PolyQuot p x)).injective.ne hu_ne)
   · simp at hq
 
 private theorem relationAt?_natDegree [ZPoly.CheckedIrreducible p]
-    (a : QAdjoin p x) (k : Nat) {q : ZPoly}
+    (a : PolyQuot p x) (k : Nat) {q : ZPoly}
     (hq : a.relationAt? a.krylovOrbit k = some q) :
     (HexPolyZMathlib.toPolyℚ q).natDegree = k := by
   unfold relationAt? at hq
@@ -822,9 +822,9 @@ private theorem relationAt?_natDegree [ZPoly.CheckedIrreducible p]
   · simp at hq
 
 private theorem relationAt?_degree [ZPoly.CheckedIrreducible p]
-    (a : QAdjoin p x) (k : Nat) {q : ZPoly}
+    (a : PolyQuot p x) (k : Nat) {q : ZPoly}
     (hq : a.relationAt? a.krylovOrbit k = some q) :
-    q.degree?.getD 0 = k := by
+    q.natDegree = k := by
   have hdegree := relationAt?_natDegree a k hq
   rw [HexPolyZMathlib.toPolyℚ,
     Polynomial.natDegree_map_eq_of_injective
@@ -833,14 +833,14 @@ private theorem relationAt?_degree [ZPoly.CheckedIrreducible p]
   exact hdegree
 
 private theorem minpoly?_sound [ZPoly.CheckedIrreducible p]
-    (a : QAdjoin p x) {q : ZPoly} (hq : a.minpoly? = some q) :
+    (a : PolyQuot p x) {q : ZPoly} (hq : a.minpoly? = some q) :
     Polynomial.aeval a (HexPolyZMathlib.toPolyℚ q) = 0 := by
   unfold minpoly? at hq
   obtain ⟨k, _hk, hrelation⟩ := List.exists_of_findSome?_eq_some hq
   exact relationAt?_sound a (k + 1) hrelation
 
 private theorem minpoly?_natDegree [ZPoly.CheckedIrreducible p]
-    (a : QAdjoin p x) {q : ZPoly} (hq : a.minpoly? = some q) :
+    (a : PolyQuot p x) {q : ZPoly} (hq : a.minpoly? = some q) :
     let b : AdjoinRoot (definingPolynomial p) := toAdjoinRoot a
     (HexPolyZMathlib.toPolyℚ q).natDegree = (minpoly Rat b).natDegree := by
   let b : AdjoinRoot (definingPolynomial p) := toAdjoinRoot a
@@ -872,7 +872,7 @@ private theorem minpoly?_natDegree [ZPoly.CheckedIrreducible p]
       simpa [d] using this
     exact hbase.trans_eq hqdegree
   obtain ⟨hdpos, _hdbound, hdrelation⟩ :
-      0 < d ∧ d ≤ p.degree?.getD 0 ∧
+      0 < d ∧ d ≤ p.natDegree ∧
         (a.relationAt? a.krylovOrbit d).isSome := by
     simpa [b, d] using minpoly_relation a
   have hile : i + 1 ≤ d := by
@@ -887,9 +887,9 @@ private theorem minpoly?_natDegree [ZPoly.CheckedIrreducible p]
   exact hqdegree.trans hid
 
 private theorem minpoly?_certificates [ZPoly.CheckedIrreducible p]
-    (a : QAdjoin p x) {q : ZPoly} (hq : a.minpoly? = some q) :
+    (a : PolyQuot p x) {q : ZPoly} (hq : a.minpoly? = some q) :
     ZPoly.content q = 1 ∧ 0 < q.leadingCoeff ∧
-      0 < q.degree?.getD 0 ∧ ZPoly.isIrreducible q = true ∧
+      0 < q.natDegree ∧ ZPoly.isIrreducible q = true ∧
       HasOnlySimpleRoots q := by
   have hdegreeMin := minpoly?_natDegree a hq
   have hrootA := minpoly?_sound a hq
@@ -901,7 +901,7 @@ private theorem minpoly?_certificates [ZPoly.CheckedIrreducible p]
   have hrelation' := hrelation
   unfold relationAt? at hrelation
   dsimp only at hrelation
-  rw [dite_eq_left (by omega : i + 1 ≤ p.degree?.getD 0)] at hrelation
+  rw [dite_eq_left (by omega : i + 1 ≤ p.natDegree)] at hrelation
   obtain ⟨coeffs, _hspan, rfl⟩ := Option.map_eq_some_iff.mp hrelation
   have hrelationNe : relationPoly coeffs ≠ 0 := by
     intro hzero
@@ -914,7 +914,7 @@ private theorem minpoly?_certificates [ZPoly.CheckedIrreducible p]
       (relationPoly coeffs) hrelationNe
   have hdegreeEq := relationAt?_degree a (i + 1) hrelation'
   have hdegree : 0 < (ZPoly.ratPolyPrimitivePart
-      (relationPoly coeffs)).degree?.getD 0 := by omega
+      (relationPoly coeffs)).natDegree := by omega
   have hqne : ZPoly.ratPolyPrimitivePart (relationPoly coeffs) ≠ 0 := by
     intro hzero
     rw [hzero] at hdegree
@@ -947,7 +947,7 @@ private theorem minpoly?_certificates [ZPoly.CheckedIrreducible p]
     have hdegzero := congrArg Polynomial.natDegree hzero
     rw [Polynomial.natDegree_zero] at hdegzero
     have hratDegree : (HexPolyZMathlib.toPolyℚ q).natDegree =
-        q.degree?.getD 0 := by
+        q.natDegree := by
       rw [HexPolyZMathlib.toPolyℚ,
         Polynomial.natDegree_map_eq_of_injective
           (RingHom.injective_int (Int.castRingHom Rat)),
@@ -987,14 +987,14 @@ private theorem minpoly?_certificates [ZPoly.CheckedIrreducible p]
     hirred, hsimple⟩
 
 private theorem minpoly?_complexRoot [ZPoly.CheckedIrreducible p]
-    (a : QAdjoin p x) (rep : RefinedIsolation p)
+    (a : PolyQuot p x) (rep : RefinedIsolation p)
     (h : SimpleRoot.mk rep = x) {q : ZPoly} (hq : a.minpoly? = some q) :
     (HexPolyZMathlib.toPolyℚ q).eval₂ (algebraMap Rat ℂ)
       (toComplex a rep h) = 0 := by
   have hroot := minpoly?_sound a hq
   have hcomp :
       (algebraMap Rat ℂ).comp (RingHom.id Rat) =
-        (embedding rep h).comp (algebraMap Rat (QAdjoin p x)) := by
+        (embedding rep h).comp (algebraMap Rat (PolyQuot p x)) := by
     ext r
     simp only [RingHom.comp_apply, RingHom.id_apply]
     exact ((embedding rep h).map_rat_algebraMap r).symm
@@ -1137,11 +1137,11 @@ theorem root_eq_of_meetsBall {q : ZPoly} (hq : q ≠ 0)
 /-- Successful conversion out of fixed coordinates preserves their value at
 the selected embedding. -/
 theorem toAlgebraicNumber?_sound [ZPoly.CheckedIrreducible p]
-    (a : QAdjoin p x) (rep : RefinedIsolation p)
+    (a : PolyQuot p x) (rep : RefinedIsolation p)
     (h : SimpleRoot.mk rep = x) {b : AlgebraicNumber}
     (hb : a.toAlgebraicNumber? rep h = some b) :
     b.toComplex = toComplex a rep h := by
-  unfold QAdjoin.toAlgebraicNumber? at hb
+  unfold PolyQuot.toAlgebraicNumber? at hb
   obtain ⟨q, hq, hb⟩ := Option.bind_eq_some_iff.mp hb
   split at hb
   · rename_i hprim
@@ -1169,15 +1169,15 @@ theorem toAlgebraicNumber?_sound [ZPoly.CheckedIrreducible p]
               simpa [valueBall, target, requested] using
                 List.find?_some hmatching
             have hvalueMem : toComplex a rep h ∈ valueBall.set := by
-              have hsound := QAdjoin.approx_sound a rep h requested
-              unfold QAdjoin.approx at hsound
+              have hsound := PolyQuot.approx_sound a rep h requested
+              unfold PolyQuot.approx at hsound
               dsimp only at hsound
               rw [hthreaded] at hsound
               simpa [valueBall, target, requested] using hsound
             have hvalueRadius : valueBall.realRadius ≤
                 (2 : ℝ) ^ (-(mahlerPrec q : ℤ)) := by
-              have hradius := QAdjoin.approx_radius a rep h requested
-              unfold QAdjoin.approx at hradius
+              have hradius := PolyQuot.approx_radius a rep h requested
+              unfold PolyQuot.approx at hradius
               dsimp only at hradius
               rw [hthreaded] at hradius
               simpa [valueBall, target, requested] using hradius
@@ -1214,7 +1214,7 @@ theorem toAlgebraicNumber?_sound [ZPoly.CheckedIrreducible p]
 /-- The minimal-polynomial and isolation search for fixed coordinates always
 finds a canonical representative. -/
 theorem toAlgebraicNumber?_isSome [ZPoly.CheckedIrreducible p]
-    (a : QAdjoin p x) (rep : RefinedIsolation p)
+    (a : PolyQuot p x) (rep : RefinedIsolation p)
     (h : SimpleRoot.mk rep = x) :
     (a.toAlgebraicNumber? rep h).isSome := by
   have hmin := minpoly?_isSome a
@@ -1223,7 +1223,7 @@ theorem toAlgebraicNumber?_isSome [ZPoly.CheckedIrreducible p]
   | some q =>
       obtain ⟨hprim, hpos, hdegree, hirred, hsimple⟩ :=
         minpoly?_certificates a hq
-      unfold QAdjoin.toAlgebraicNumber?
+      unfold PolyQuot.toAlgebraicNumber?
       simp only [hq, Option.bind_eq_bind, Option.bind_some]
       rw [dite_eq_left hprim, dite_eq_left hpos, dite_eq_left hdegree,
         dite_eq_left hirred, dite_eq_left hsimple]
@@ -1231,16 +1231,16 @@ theorem toAlgebraicNumber?_isSome [ZPoly.CheckedIrreducible p]
         intro hzero
         rw [hzero] at hdegree
         simp at hdegree
-      have hisolate := HexRootsMathlib.isolate_isSome q hsimple hqne
+      have hisolate := HexRootsMathlib.isolateComplexRoots?_isSome q hsimple hqne
         (separationDepth q : Int) .nkThenPellet
-      cases hrun : isolate q hsimple (separationDepth q : Int) with
+      cases hrun : ZPoly.isolateComplexRoots? q hsimple (separationDepth q : Int) with
       | none => simp [hrun] at hisolate
       | some isolations =>
           have hmapSome := HexRootsMathlib.array_mapM_isSome
             (xs := isolations) (f := DyadicRootIsolation.toRefined?)
             (fun iso hiso => by
               unfold DyadicRootIsolation.toRefined?
-              rw [dite_eq_left (HexRootsMathlib.isolate_refined q hsimple
+              rw [dite_eq_left (HexRootsMathlib.isolateComplexRoots?_refined q hsimple
                 (separationDepth q : Int) .nkThenPellet hrun iso hiso)]
               rfl)
           cases hmap : isolations.mapM DyadicRootIsolation.toRefined? with
@@ -1262,7 +1262,7 @@ theorem toAlgebraicNumber?_isSome [ZPoly.CheckedIrreducible p]
                   Polynomial.eval_map]
                 exact hrootRat
               obtain ⟨iso, hiso, hisoRoot⟩ :=
-                HexRootsMathlib.isolate_root_mem_of_pos q hsimple
+                HexRootsMathlib.isolateComplexRoots?_root_mem_of_pos q hsimple
                   (separationDepth q : Int) .nkThenPellet hdegree hrun hroot
               obtain ⟨i, hiList, hidx⟩ := List.getElem_of_mem hiso
               have hi : i < isolations.size := by simpa using hiList
@@ -1298,8 +1298,8 @@ theorem toAlgebraicNumber?_isSome [ZPoly.CheckedIrreducible p]
                     evalRatBall a.coeffs threaded.1.1.square target
                   have hvalueMem :
                       toComplex a rep h ∈ valueBall.set := by
-                    have hsound := QAdjoin.approx_sound a rep h requested
-                    unfold QAdjoin.approx at hsound
+                    have hsound := PolyQuot.approx_sound a rep h requested
+                    unfold PolyQuot.approx at hsound
                     dsimp only at hsound
                     rw [hthreaded] at hsound
                     simpa [valueBall, target, requested] using hsound
@@ -1332,7 +1332,7 @@ theorem toAlgebraicNumber?_isSome [ZPoly.CheckedIrreducible p]
 /-- The total fixed-presentation conversion preserves the selected complex
 value. -/
 theorem toAlgebraicNumber_toComplex [ZPoly.CheckedIrreducible p]
-    (a : QAdjoin p x) (rep : RefinedIsolation p)
+    (a : PolyQuot p x) (rep : RefinedIsolation p)
     (h : SimpleRoot.mk rep = x) :
     (a.toAlgebraicNumber rep h).toComplex = toComplex a rep h := by
   cases hb : a.toAlgebraicNumber? rep h with
@@ -1340,10 +1340,10 @@ theorem toAlgebraicNumber_toComplex [ZPoly.CheckedIrreducible p]
       have hsome := toAlgebraicNumber?_isSome a rep h
       simp [hb] at hsome
   | some b =>
-      simpa [QAdjoin.toAlgebraicNumber, hb] using
+      simpa [PolyQuot.toAlgebraicNumber, hb] using
         toAlgebraicNumber?_sound a rep h hb
 
-end QAdjoin
+end PolyQuot
 
 /-! The total exactification headlines must not inherit an unfinished proof. -/
 
@@ -1360,15 +1360,15 @@ info: 'Hex.AlgebraicRoot.exact_toComplex' depends on axioms: [propext, Classical
 #print axioms AlgebraicRoot.exact_toComplex
 
 /--
-info: 'Hex.QAdjoin.toAlgebraicNumber?_isSome' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: 'Hex.PolyQuot.toAlgebraicNumber?_isSome' depends on axioms: [propext, Classical.choice, Quot.sound]
 -/
 #guard_msgs in
-#print axioms QAdjoin.toAlgebraicNumber?_isSome
+#print axioms PolyQuot.toAlgebraicNumber?_isSome
 
 /--
-info: 'Hex.QAdjoin.toAlgebraicNumber_toComplex' depends on axioms: [propext, Classical.choice, Quot.sound]
+info: 'Hex.PolyQuot.toAlgebraicNumber_toComplex' depends on axioms: [propext, Classical.choice, Quot.sound]
 -/
 #guard_msgs in
-#print axioms QAdjoin.toAlgebraicNumber_toComplex
+#print axioms PolyQuot.toAlgebraicNumber_toComplex
 
 end Hex
