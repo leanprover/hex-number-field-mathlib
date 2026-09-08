@@ -9,37 +9,37 @@ leanOptions = [
 [[require]]
 name = "HexNumberField"
 git = "https://github.com/leanprover/hex-number-field.git"
-rev = "v0.2.0"
+rev = "v0.3.0"
 
 [[require]]
 name = "HexRootsMathlib"
 git = "https://github.com/leanprover/hex-roots-mathlib.git"
-rev = "v0.2.0"
+rev = "v0.3.0"
 
 [[require]]
 name = "HexResultantMathlib"
 git = "https://github.com/leanprover/hex-resultant-mathlib.git"
-rev = "v0.2.0"
+rev = "v0.3.0"
 
 [[require]]
 name = "HexBerlekampZassenhausMathlib"
 git = "https://github.com/leanprover/hex-berlekamp-zassenhaus-mathlib.git"
-rev = "v0.2.0"
+rev = "v0.3.0"
 
 [[require]]
 name = "HexPolyMathlib"
 git = "https://github.com/leanprover/hex-poly-mathlib.git"
-rev = "v0.2.0"
+rev = "v0.3.0"
 
 [[require]]
 name = "HexPolyZMathlib"
 git = "https://github.com/leanprover/hex-poly-z-mathlib.git"
-rev = "v0.2.0"
+rev = "v0.3.0"
 
 [[require]]
 name = "HexMatrixMathlib"
 git = "https://github.com/leanprover/hex-matrix-mathlib.git"
-rev = "v0.2.0"
+rev = "v0.3.0"
 
 [[require]]
 name = "mathlib"
