@@ -134,7 +134,7 @@ theorem exactFactor?_sound (a : AlgebraicRoot) (q : ZPoly)
       (HexRootsMathlib.toPolyℂ a.p).IsRoot z)
     {b : AlgebraicNumber} (h : a.exactFactor? q = some b) :
     b.toComplex = a.toComplex := by
-  unfold AlgebraicRoot.exactFactor? at h
+  rw [AlgebraicRoot.exactFactor?_eq] at h
   split at h
   · rename_i hprim
     split at h
@@ -191,7 +191,7 @@ theorem exactFactor?_isSome (a : AlgebraicRoot) (q : ZPoly)
     (hsimple : HasOnlySimpleRoots q)
     (hroot : (HexRootsMathlib.toPolyℂ q).IsRoot a.toComplex) :
     (a.exactFactor? q).isSome := by
-  unfold AlgebraicRoot.exactFactor?
+  rw [AlgebraicRoot.exactFactor?_eq]
   rw [dite_eq_left hprim, dite_eq_left hpos, dite_eq_left hdegree, dite_eq_left hirred,
     dite_eq_left hsimple]
   have hqne : q ≠ 0 := by
@@ -1163,7 +1163,7 @@ theorem toAlgebraicNumber?_sound [ZPoly.CheckedIrreducible p]
     (h : SimpleRoot.mk rep = x) {b : AlgebraicNumber}
     (hb : a.toAlgebraicNumber? rep h = some b) :
     b.toComplex = toComplex a rep h := by
-  unfold PolyQuot.toAlgebraicNumber? at hb
+  rw [PolyQuot.toAlgebraicNumber?_eq] at hb
   obtain ⟨q, hq, hb⟩ := Option.bind_eq_some_iff.mp hb
   split at hb
   · rename_i hprim
@@ -1245,7 +1245,7 @@ theorem toAlgebraicNumber?_isSome [ZPoly.CheckedIrreducible p]
   | some q =>
       obtain ⟨hprim, hpos, hdegree, hirred, hsimple⟩ :=
         minpoly?_certificates a hq
-      unfold PolyQuot.toAlgebraicNumber?
+      rw [PolyQuot.toAlgebraicNumber?_eq]
       simp only [hq, Option.bind_eq_bind, Option.bind_some]
       rw [dite_eq_left hprim, dite_eq_left hpos, dite_eq_left hdegree,
         dite_eq_left hirred, dite_eq_left hsimple]
